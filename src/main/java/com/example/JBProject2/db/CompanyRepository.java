@@ -6,5 +6,7 @@ import com.example.JBProject2.beans.Company;
 
 public interface CompanyRepository extends JpaRepository<Company, Integer> {
 	
+	public Company findCompanyByEmail(String email);
+	
 
 }

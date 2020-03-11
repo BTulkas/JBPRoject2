@@ -30,6 +30,11 @@ public class AdminFacade {
 	 * Company getter methods
 	 */
 	
+	public boolean login(String email, String password) {
+		if(email.equals("admin@admin.co.il") && password.equals("admin")) return true;
+		else return false;
+	}
+	
 	// Returns all companies 
 	public Set<Company> getAllCompanies() {
 		// Initiate empty Set to ensure no duplicates
