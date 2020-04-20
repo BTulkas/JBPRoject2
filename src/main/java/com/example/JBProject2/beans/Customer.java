@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -21,20 +22,19 @@ public class Customer {
 	@Column(nullable=false)
 	private String firstName, lastName, email, password;
 	
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.EAGER)
 	private Set<Coupon> coupons;
 	
 	
 	public Customer() {}
 
 
-	public Customer(String firstName, String lastName, String email, String password, Set<Coupon> coupons) {
+	public Customer(String firstName, String lastName, String email, String password) {
 		super();
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
 		this.password = password;
-		this.coupons = coupons;
 	}
 
 

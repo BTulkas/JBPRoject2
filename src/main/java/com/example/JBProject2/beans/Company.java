@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -21,19 +22,18 @@ public class Company {
 	@Column(nullable=false)
 	private String name, email, password;
 	
-	@OneToMany(mappedBy="company")
+	@OneToMany(mappedBy="company", fetch=FetchType.EAGER)
 	private List<Coupon> coupons;
 	
 	
 	public Company() {}
 
 
-	public Company(String name, String email, String password, List<Coupon> coupons) {
+	public Company(String name, String email, String password) {
 		super();
 		this.name = name;
 		this.email = email;
 		this.password = password;
-		this.coupons = coupons;
 	}
 
 

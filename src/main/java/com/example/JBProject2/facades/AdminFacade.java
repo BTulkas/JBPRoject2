@@ -17,7 +17,7 @@ import com.example.JBProject2.facades.exceptions.CustomerAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CustomerNotFoundException;
 
 @Service
-public class AdminFacade {
+public class AdminFacade extends ClientFacade {
 	
 	@Autowired
 	private CompanyRepository compRepo;
@@ -146,8 +146,13 @@ public class AdminFacade {
 	
 	// Deletes a customer by ID
 	public void deleteCustomer(int custId) throws CustomerNotFoundException {
-		if(custRepo.findById(custId).isPresent() && custRepo.findById(custId).get() instanceof Customer) 
+		Customer customer = custRepo.findById(custId).get();
+		if(custRepo.findById(custId).isPresent() && customer instanceof Customer) {
+			customer.getCoupons().clear();
+			custRepo.save(customer);
+		
 			custRepo.deleteById(custId);
+		}
 		else throw new CustomerNotFoundException();
 	}
 	
