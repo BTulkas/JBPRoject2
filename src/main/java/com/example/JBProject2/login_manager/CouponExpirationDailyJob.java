@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.JBProject2.beans.Coupon;
+import com.example.JBProject2.beans.Customer;
 import com.example.JBProject2.db.CouponRepository;
+import com.example.JBProject2.db.CustomerRepository;
 
 
 @Service
@@ -15,6 +17,8 @@ public class CouponExpirationDailyJob extends Thread{
 	
 	@Autowired
 	CouponRepository coupRepo;
+	@Autowired
+	CustomerRepository custRepo;
     
 	private boolean keepGoing = true;
 
@@ -34,7 +38,12 @@ public class CouponExpirationDailyJob extends Thread{
 			Calendar cal = Calendar.getInstance(); 
 
 			for(Coupon coupon:coupRepo.findByEndDateBefore(new Date(cal.getTimeInMillis()))){
-			        coupRepo.deleteById(coupon.getCouponId());
+				// Removes the coupon from customers by reverse query
+				for(Customer cust : coupon.getPurchasedBy()) {
+					cust.getCoupons().remove(coupon);
+					custRepo.save(cust);
+				}
+				coupRepo.deleteById(coupon.getCouponId());
 			}
 
             try {

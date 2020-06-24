@@ -1,5 +1,6 @@
 package com.example.JBProject2.beans;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -22,8 +23,8 @@ public class Customer {
 	@Column(nullable=false)
 	private String firstName, lastName, email, password;
 	
-	@ManyToMany(fetch = FetchType.EAGER)
-	private Set<Coupon> coupons;
+	@ManyToMany(mappedBy="purchasedBy", fetch = FetchType.EAGER)
+	private List<Coupon> coupons;
 	
 	
 	public Customer() {}
@@ -78,12 +79,12 @@ public class Customer {
 	}
 
 
-	public Set<Coupon> getCoupons() {
+	public List<Coupon> getCoupons() {
 		return coupons;
 	}
 
 
-	public void setCoupons(Set<Coupon> coupons) {
+	public void setCoupons(List<Coupon> coupons) {
 		this.coupons = coupons;
 	}
 

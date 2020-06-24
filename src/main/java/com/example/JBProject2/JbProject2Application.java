@@ -11,6 +11,7 @@ import com.example.JBProject2.facades.exceptions.CouponExpiredOrNoStockException
 import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
 import com.example.JBProject2.facades.exceptions.CustomerAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CustomerNotFoundException;
+import com.example.JBProject2.facades.exceptions.DataMismatchException;
 import com.example.JBProject2.login_manager.CouponExpirationDailyJob;
 import com.example.JBProject2.login_manager.exception.WrongLoginException;
 import com.example.JBProject2.test.Test;
@@ -28,25 +29,32 @@ public class JbProject2Application {
 		dailyJob.start();
 		
 		
-		try {
-			test.createDatabase();
-		} catch (WrongLoginException | CompanyAlreadyExistsException | CouponAlreadyExistsException
-				| CustomerAlreadyExistsException | CouponExpiredOrNoStockException e) {
-			System.out.println(e.getMessage());
-		}
-		 
-		 
-		 
 		
-		try {
-			test.testAll();
-		} catch (WrongLoginException | CompanyAlreadyExistsException | CompanyNotFoundException
-				| CustomerAlreadyExistsException | CustomerNotFoundException | CouponAlreadyExistsException
-				| CouponNotFoundException | CouponExpiredOrNoStockException e) {
-			System.out.println(e.getMessage());
-		} finally {
-			dailyJob.quit();
-		}			 
+		
+		
+		
+		  try { test.createDatabase(); } catch (WrongLoginException |
+		  CompanyAlreadyExistsException | CouponAlreadyExistsException |
+		  CustomerAlreadyExistsException | CouponExpiredOrNoStockException | CustomerNotFoundException | CompanyNotFoundException e) {
+		  System.out.println(e.getMessage()); }
+		 
+		 
+		 		 
+		
+		
+		
+		
+		
+		  try { test.testAll(); } catch (WrongLoginException |
+		  CompanyAlreadyExistsException | CompanyNotFoundException |
+		  CustomerAlreadyExistsException | CustomerNotFoundException |
+		  CouponAlreadyExistsException | CouponNotFoundException |
+		  CouponExpiredOrNoStockException | DataMismatchException e) { System.out.println(e.getMessage()); }
+		  finally { dailyJob.quit(); }
+		 
+		 
+		 
+		 
 		
 		
 		
@@ -59,11 +67,14 @@ public class JbProject2Application {
 		  
 		
 		
+		
+		
 		/*
 		 * try { test.testDeletes(); } catch (WrongLoginException |
 		 * CouponNotFoundException | CustomerNotFoundException |
 		 * CompanyNotFoundException e) { System.out.println(e.getMessage()); }
 		 */
+		 
 		 
 		
 	}

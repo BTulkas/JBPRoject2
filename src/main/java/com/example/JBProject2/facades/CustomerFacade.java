@@ -3,9 +3,11 @@ package com.example.JBProject2.facades;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.example.JBProject2.beans.CategoryType;
@@ -17,6 +19,7 @@ import com.example.JBProject2.facades.exceptions.CouponAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CouponExpiredOrNoStockException;
 
 @Service
+@Scope("prototype")
 public class CustomerFacade extends ClientFacade {
 	
 	private int loggedCustomerId;
@@ -26,17 +29,10 @@ public class CustomerFacade extends ClientFacade {
 	@Autowired
 	CouponRepository coupRepo;
 	
-	/*
-	 * public CustomerFacade(CustomerRepository cusFace) { super(); this.cusRepo =
-	 * cusFace; }
-	 * 
-	 * public CustomerFacade(CouponRepository coupFace) { super(); this.coupRepo =
-	 * coupFace; }
-	 */
 	
 	
 	public boolean login(String email, String password) {
-		Customer cus = cusRepo.findCustomerByEmail(email);
+		Customer cus = cusRepo.findCustomerByEmail(email).get();
 		if(cus.getPassword().equals(password)) {
 			loggedCustomerId = cus.getCustomerId();
 			return true;
@@ -56,7 +52,7 @@ public class CustomerFacade extends ClientFacade {
 	
 	
 	// Return all coupons purchased by customer
-	public Set<Coupon> getAllCustomerCoupons(){
+	public List<Coupon> getAllCustomerCoupons(){
 		return cusRepo.findById(loggedCustomerId).get().getCoupons();
 	}
 	
@@ -107,11 +103,13 @@ public class CustomerFacade extends ClientFacade {
 				&& coupon.getEndDate().after(new Date(Calendar.getInstance().getTimeInMillis()))) {
 			// Reduces coupon stock amount by 1.
 			coupon.setAmount(coupon.getAmount()-1);
+			coupon.getPurchasedBy().add(getLoggedCustomer());
 			coupRepo.save(coupon);
-			// Save the coupon to customer.
-			Customer cust = getLoggedCustomer();
-			cust.getCoupons().add(coupon);
-			cusRepo.save(cust);
+			
+			/*
+			 * // Save the coupon to customer. Customer cust = getLoggedCustomer();
+			 * cust.getCoupons().add(coupon); cusRepo.save(cust);
+			 */
 			
 		}
 		else throw new CouponExpiredOrNoStockException();

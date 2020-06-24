@@ -21,6 +21,7 @@ import com.example.JBProject2.facades.exceptions.CouponExpiredOrNoStockException
 import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
 import com.example.JBProject2.facades.exceptions.CustomerAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CustomerNotFoundException;
+import com.example.JBProject2.facades.exceptions.DataMismatchException;
 import com.example.JBProject2.login_manager.ClientType;
 import com.example.JBProject2.login_manager.LoginManager;
 import com.example.JBProject2.login_manager.exception.WrongLoginException;
@@ -35,7 +36,7 @@ public class Test {
 	@Autowired
 	CouponRepository coupRepo;
 	
-	public void createDatabase() throws WrongLoginException, CompanyAlreadyExistsException, CouponAlreadyExistsException, CustomerAlreadyExistsException, CouponExpiredOrNoStockException {
+	public void createDatabase() throws WrongLoginException, CompanyAlreadyExistsException, CouponAlreadyExistsException, CustomerAlreadyExistsException, CouponExpiredOrNoStockException, CustomerNotFoundException, CompanyNotFoundException {
 		AdminFacade loggedAdmin = (AdminFacade) logMan.login("admin@admin.co.il", "admin", ClientType.Administrator);
 		
 		// Company generator.
@@ -50,6 +51,7 @@ public class Test {
 		
 		
 		CompanyFacade loggedCompany = (CompanyFacade) logMan.login("comp1@compmail.comp", "123", ClientType.Company);
+		CompanyFacade loggedCompany2 = (CompanyFacade) logMan.login("comp2@compmail.comp", "123", ClientType.Company);
 		
 		// Coupon generator.
 		Calendar startDate = Calendar.getInstance();
@@ -67,25 +69,42 @@ public class Test {
 					1+Math.random()*50, 
 					"image"));
 		}
+
+		for(int i=1; i<=10; i++) {
+			loggedCompany2.addCoupon(new Coupon(loggedCompany2.getLoggedCompany(), 
+					CategoryType.values()[(int)(Math.random()*5)], 
+					"Coupon"+i,
+					"A description", 
+					new Date(startDate.getTimeInMillis()), 
+					new Date(endDate.getTimeInMillis()), 
+					(int)(1+Math.random()*100), 
+					1+Math.random()*50, 
+					"image"));
+		}
 		
 		// Pre-purchase amount.
 		System.out.println("Pre purchase coup 1 amount: " + coupRepo.findById(1).get().getAmount());
 		
 		
 		CustomerFacade loggedCustomer = (CustomerFacade)  logMan.login("cust1@cust.omer", "123", ClientType.Customer);
+		CustomerFacade loggedCustomer2 = (CustomerFacade)  logMan.login("cust2@cust.omer", "123", ClientType.Customer);
 		
 		
-		  // Capitalist Dream (auto-coupon-buyer). 
+	    // Capitalist Dream (auto-coupon-buyer). 
 		for (Coupon coup : coupRepo.findAll()) {
-			loggedCustomer.purchaseCoupon(coup);
-		}
+			if(coup.getCouponId() < 11) 
+				loggedCustomer.purchaseCoupon(coup);
+			if(coup.getCouponId() >= 5)
+				loggedCustomer2.purchaseCoupon(coup);
+			 }
+		
 		// Post-purchase amount.
 		System.out.println("Post purchase coup 1 amount: " + coupRepo.findById(1).get().getAmount());
 		
 	}
 	
 	
-	public void testAll() throws WrongLoginException, CompanyAlreadyExistsException, CompanyNotFoundException, CustomerAlreadyExistsException, CustomerNotFoundException, CouponAlreadyExistsException, CouponNotFoundException, CouponExpiredOrNoStockException {
+	public void testAll() throws WrongLoginException, CompanyAlreadyExistsException, CompanyNotFoundException, CustomerAlreadyExistsException, CustomerNotFoundException, CouponAlreadyExistsException, CouponNotFoundException, CouponExpiredOrNoStockException, DataMismatchException {
 		testAdmin();
 		testCompany();
 		testCustomer();
@@ -94,7 +113,7 @@ public class Test {
 
 	
 	
-	public void testAdmin() throws WrongLoginException, CompanyAlreadyExistsException, CompanyNotFoundException, CustomerAlreadyExistsException, CustomerNotFoundException, CouponAlreadyExistsException, CouponNotFoundException{
+	public void testAdmin() throws WrongLoginException, CompanyAlreadyExistsException, CompanyNotFoundException, CustomerAlreadyExistsException, CustomerNotFoundException, CouponAlreadyExistsException, CouponNotFoundException, DataMismatchException{
 		
 		System.out.println("***************************Admin tests********************************");
 
@@ -145,7 +164,7 @@ public class Test {
 	}
 	
 	
-	public void testCompany() throws WrongLoginException, CouponNotFoundException {
+	public void testCompany() throws WrongLoginException, CouponNotFoundException, CompanyNotFoundException {
 		
 		System.out.println("***************************Company tests********************************");
 
@@ -175,12 +194,12 @@ public class Test {
 		// Test updateCoupon.
 		loggedCompany.updateCoupon(coup);
 		// Print again from database.
-		System.out.println(loggedCompany.getOneCoupon(1));
+		System.out.println("Updated coupon: " + loggedCompany.getOneCoupon(1).getTitle());
 		
 	}
 	
 	
-	public void testCustomer() throws WrongLoginException, CouponAlreadyExistsException, CouponExpiredOrNoStockException {
+	public void testCustomer() throws WrongLoginException, CouponAlreadyExistsException, CouponExpiredOrNoStockException, CustomerNotFoundException {
 		
 		System.out.println("***************************Customer tests********************************");
 
@@ -208,27 +227,34 @@ public class Test {
 		
 		CompanyFacade loggedCompany = (CompanyFacade) logMan.login("comp1@compmail.comp", "123", ClientType.Company);
 		CustomerFacade loggedCustomer = (CustomerFacade)  logMan.login("cust1@cust.omer", "123", ClientType.Customer);
+		CustomerFacade loggedCustomer2 = (CustomerFacade)  logMan.login("cust2@cust.omer", "123", ClientType.Customer);
 		AdminFacade loggedAdmin = (AdminFacade) logMan.login("admin@admin.co.il", "admin", ClientType.Administrator);
 
+		
 		// Test deleteCoupon.
 		loggedCompany.deleteCoupon(loggedCompany.getOneCoupon(1));
 		System.out.println("All coupons, should not contain coupon 1: " + coupRepo.findAll());
+		
 		// Check that coupon is removed from customer purchases.
 		System.out.println("Customer 1 coupons, should not have coupon 1: " + loggedCustomer.getAllCustomerCoupons());
 		
-		// Test deleteCustomer. 
+		// Test deleteCustomer.
 		loggedAdmin.deleteCustomer(1);
 		System.out.println("All customers, should not contain customer 1: " + loggedAdmin.getAllCustomers());
-
-		// Check that customer is removed from coupon purchasedBy.
-		System.out.println("PurchasedBy of coupon 2, should not have customer 1: " + loggedCompany.getOneCoupon(2).getPurchasedBy());
-		
-		// Test deleteCompany
-		loggedAdmin.deleteCompany(1);
-		System.out.println("All companies, should not contain company 1: " + loggedAdmin.getAllCompanies());
-		// Check that company coupons are deleted.
-		System.out.println("All coupons, should not contain company 1 coupons: " + coupRepo.findAll());
-		
+		  
+		 // Check that customer is removed from coupon purchasedBy.
+		 System.out.println("PurchasedBy of coupon 2, should not have customer 1: " + loggedCompany.getOneCoupon(2).getPurchasedBy());
+		  
+		 // Test deleteCompany
+		 loggedAdmin.deleteCompany(1);
+		 System.out.println("All companies, should not contain company 1: " + loggedAdmin.getAllCompanies());
+		  
+		 // Check that company coupons are deleted.
+		 System.out.println("All coupons, should not contain company 1 coupons: " + coupRepo.findAll());
+		  
+		 // Double check coupons in Customer objects
+		 System.out.println("All customer 2 coupons, should not contain company 1 coupons: " + loggedCustomer2.getAllCustomerCoupons());
+		 
 		
 	}
 	
@@ -240,7 +266,7 @@ public class Test {
 		Calendar cal = Calendar.getInstance();
 		cal.set(2020, Calendar.MARCH, 19);
 				
-		coupRepo.findById(5).get().setEndDate(new Date(cal.getTimeInMillis()));
+		coupRepo.findById(7).get().setEndDate(new Date(cal.getTimeInMillis()));
 	}
 	
 

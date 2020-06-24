@@ -3,6 +3,7 @@ package com.example.JBProject2.facades;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.example.JBProject2.beans.CategoryType;
@@ -16,6 +17,7 @@ import com.example.JBProject2.facades.exceptions.CouponAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
 
 @Service
+@Scope("prototype")
 public class CompanyFacade extends ClientFacade {
 	
 	private int loggedCompanyId;
@@ -29,13 +31,13 @@ public class CompanyFacade extends ClientFacade {
 	
 	
 	public boolean login(String email, String password) {
-		 Company comp = compRepo.findCompanyByEmail(email);
+		Company comp = compRepo.findCompanyByEmail(email).get();
 		if(comp.getPassword().equals(password)) {
 			// Saves the company ID for use in facade methods.
 			loggedCompanyId = comp.getCompanyId();
 			return true;
 		}
-		else return false;
+		return false;
 	}
 
 	
@@ -58,12 +60,10 @@ public class CompanyFacade extends ClientFacade {
 	
 	// Returns one coupon by ID
 	public Coupon getOneCoupon(int coupId) throws CouponNotFoundException {
-		Coupon coup = coupRepo.findById(coupId).get();
-		if(coupRepo.findById(coupId).isPresent()
-				&& coup instanceof Coupon
-				&& coup.getCompany().getCompanyId() == loggedCompanyId)
-			return coup;
-		else throw new CouponNotFoundException();
+		Coupon coup = coupRepo.findById(coupId).orElseThrow(CouponNotFoundException::new);
+		if(coup.getCompany().getCompanyId() != loggedCompanyId)
+			throw new CouponNotFoundException();
+		return coup;
 	}
 	
 	
@@ -88,10 +88,10 @@ public class CompanyFacade extends ClientFacade {
 	// Add a coupon
 	public void addCoupon(Coupon coupon) throws CouponAlreadyExistsException {
 		// Checks for duplicate titles within the same company
-		
 		  for(Coupon coup : getCompanyCoupons()) {
-		  if(coupon.getTitle().equals(coup.getTitle())) throw new
-		  CouponAlreadyExistsException(); }
+			  if(coupon.getTitle().equals(coup.getTitle()))
+				  throw new CouponAlreadyExistsException();
+			  }
 
 		coupRepo.save(coupon);
 	}
@@ -99,25 +99,28 @@ public class CompanyFacade extends ClientFacade {
 	
 	// Updates a coupon by Coupon object
 	public void updateCoupon(Coupon coupon) throws CouponNotFoundException {
-		// Checks the coupon belongs to the company before saving.
-		if(coupRepo.existsById(coupon.getCouponId()) && coupon.getCompany().getCompanyId() == loggedCompanyId) coupRepo.save(coupon);
-		else throw new CouponNotFoundException();
+		// Checks the coupon exists and belongs to the company before saving.
+		if(!coupRepo.existsById(coupon.getCouponId()) || coupon.getCompany().getCompanyId() != loggedCompanyId)
+			throw new CouponNotFoundException();
+		
+		coupRepo.save(coupon);
 	}
 	
 	
 	// Deletes a coupon and purchase history. On purpose. For some reason.
 	public void deleteCoupon(Coupon coupon) throws CouponNotFoundException {
-		// Checks the coupon belongs to the company before deleting.
-		if(coupRepo.existsById(coupon.getCouponId()) && coupon.getCompany().getCompanyId() == loggedCompanyId) {
+		// Checks the coupon exists and belongs to the company before deleting.
+		if(!coupRepo.existsById(coupon.getCouponId()) || coupon.getCompany().getCompanyId() != loggedCompanyId)
+			throw new CouponNotFoundException();
 			
-			for(Customer cust : coupon.getPurchasedBy()) {
-				cust.getCoupons().remove(coupon);
-				custRepo.save(cust);
-			}
-			
-			coupRepo.deleteById(coupon.getCouponId());
+		// Removes the coupon from customers by reverse query
+		for(Customer cust : coupon.getPurchasedBy()) {
+			cust.getCoupons().remove(coupon);
+			custRepo.save(cust);
 		}
-		else throw new CouponNotFoundException();
+		
+		coupRepo.deleteById(coupon.getCouponId());
+		
 	}
 	
 	

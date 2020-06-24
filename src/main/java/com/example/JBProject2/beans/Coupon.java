@@ -1,9 +1,9 @@
 package com.example.JBProject2.beans;
 
 import java.sql.Date;
+import java.util.List;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -46,8 +46,8 @@ public class Coupon {
 	@Column
 	private String image;
 	
-	@ManyToMany(mappedBy="coupons", fetch=FetchType.EAGER, cascade=CascadeType.PERSIST)
-	private Set<Customer> purchasedBy;
+	@ManyToMany(fetch=FetchType.EAGER)
+	private List<Customer> purchasedBy;
 	
 	public Coupon() {}
 
@@ -143,11 +143,11 @@ public class Coupon {
 	
 	
 
-	public Set<Customer> getPurchasedBy() {
+	public List<Customer> getPurchasedBy() {
 		return purchasedBy;
 	}
 
-	public void setPurchasedBy(Set<Customer> purchasedBy) {
+	public void setPurchasedBy(List<Customer> purchasedBy) {
 		this.purchasedBy = purchasedBy;
 	}
 

@@ -99,7 +99,7 @@ public class Company {
 	public boolean equals(Object obj) {
 		if(obj instanceof Company) {
 			Company comp = (Company)obj;
-			if(comp.companyId == this.companyId && comp.name == this.name) return true;
+			if(comp.getCompanyId() == this.companyId && comp.getName().equals(this.name)) return true;
 			else return false;
 			} else return false;
 		} 

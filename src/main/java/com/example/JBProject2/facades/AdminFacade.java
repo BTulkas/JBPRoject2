@@ -1,9 +1,11 @@
 package com.example.JBProject2.facades;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import com.example.JBProject2.beans.Company;
 import com.example.JBProject2.beans.Coupon;
@@ -17,6 +19,7 @@ import com.example.JBProject2.facades.exceptions.CustomerAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CustomerNotFoundException;
 
 @Service
+@Scope("prototype")
 public class AdminFacade extends ClientFacade {
 	
 	@Autowired
@@ -36,24 +39,16 @@ public class AdminFacade extends ClientFacade {
 	}
 	
 	// Returns all companies 
-	public Set<Company> getAllCompanies() {
-		// Initiate empty Set to ensure no duplicates
-		HashSet<Company> companies = new HashSet<Company>();
-		
-		// Checks that returned objects are Company
-		for(Object obj : compRepo.findAll()) {
-			if(obj instanceof Company) companies.add((Company)obj);
-		}
-		
-		return companies;
+	public List<Company> getAllCompanies() {
+
+		return compRepo.findAll();
 	}
 	
 	
 	// Returns one company by ID
 	public Company getOneCompany(int compId) throws CompanyNotFoundException {
-		if(compRepo.findById(compId).isPresent() && compRepo.findById(compId).get() instanceof Company) 
-			return compRepo.findById(compId).get();
-		else throw new CompanyNotFoundException();
+
+		return compRepo.findById(compId).orElseThrow(CompanyNotFoundException::new);
 	}
 	
 	
@@ -64,34 +59,37 @@ public class AdminFacade extends ClientFacade {
 	// Add company to DB
 	public void addCompany(Company company) throws CompanyAlreadyExistsException {
 		// Checks for duplicate name or email. Calls findAll instead of getAllCompanies to avoid redundant logic
-		for(Company comp : getAllCompanies()) {
-			if(comp.getName().equals(company.getName()) || comp.getEmail().equals(company.getEmail()))
-				throw new CompanyAlreadyExistsException();
-		}
-		compRepo.save(company);
+		if(compRepo.findCompanyByEmail(company.getEmail()).isEmpty() && compRepo.findCompanyByName(company.getName()).isEmpty())
+			compRepo.save(company);
+		else throw new CompanyAlreadyExistsException();
 	}
 	
 	
 	// Updates a company. Name and ID update will be blocked client-side.
 	public void updateCompany(Company company) throws CompanyNotFoundException {
-		// Checks that the object to update exists in the DB and is of correct type.
-		if(compRepo.findById(company.getCompanyId()).isPresent() && compRepo.findById(company.getCompanyId()).get() instanceof Company) 
-			compRepo.save(company);
-		else throw new CompanyNotFoundException();
+		// Checks that the object to update exists in the DB.
+		compRepo.findById(company.getCompanyId()).orElseThrow(CompanyNotFoundException::new);
+		compRepo.save(company);
+
 	}
 	
 		
 	// Deletes a company by ID.
 	public void deleteCompany(int compId) throws CompanyNotFoundException {
-		// Checks that the object to delete exists in the DB and is of correct type.
-		if(compRepo.findById(compId).isPresent() && compRepo.findById(compId).get() instanceof Company) {
+		// Checks that the object to delete exists in the DB.
+		Company comp = compRepo.findById(compId).orElseThrow(CompanyNotFoundException::new);
 			// Deletes all coupons by that company.
-			for(Coupon coup : compRepo.findById(compId).get().getCoupons()) {
-				coupRepo.delete(coup);
+			for(Coupon coup : comp.getCoupons()) {
+				// Removes the coupon from customers by reverse query
+				for (Customer cust : getAllCustomers()) {
+					cust.getCoupons().remove(coup);
+					custRepo.save(cust);
+				}
+
+			coupRepo.delete(coup);
 			}
-			compRepo.deleteById(compId);
-		}
-		else throw new CompanyNotFoundException();
+		
+		compRepo.deleteById(compId);
 	}
 	
 	
@@ -100,23 +98,16 @@ public class AdminFacade extends ClientFacade {
 	 */
 	
 	// Returns all customers
-	public Set<Customer> getAllCustomers(){
-		// Initiate empty Set to ensure no duplicates
-		HashSet<Customer> customers = new HashSet<Customer>();
-		
-		// Checks that returned objects are Customer
-		for(Object obj : custRepo.findAll()) {
-			if(obj instanceof Customer) customers.add((Customer)obj);
-		}
-		return customers;
+	public List<Customer> getAllCustomers(){
+
+		return custRepo.findAll();
 	}
 	
 	
 	// Returns one Customer by ID
 	public Customer getOneCustomer(int custId) throws CustomerNotFoundException {
-		if(custRepo.findById(custId).isPresent() && custRepo.findById(custId).get() instanceof Customer) 
-			return custRepo.findById(custId).get();
-		else throw new CustomerNotFoundException();
+
+		return custRepo.findById(custId).orElseThrow(CustomerNotFoundException::new);
 		}
 	
 	
@@ -126,11 +117,9 @@ public class AdminFacade extends ClientFacade {
 	
 	// Adds a customer to the DB
 	public void addCustomer(Customer customer) throws CustomerAlreadyExistsException {
-		// Checks for duplicate name or email. Calls findAll instead of getAllCompanies to avoid redundant logic
-		for(Customer cust : getAllCustomers()) {
-			if(cust.getEmail().equals(customer.getEmail()))
-				throw new CustomerAlreadyExistsException();
-		}
+		// Checks for duplicate name or email
+		if(custRepo.findCustomerByEmail(customer.getEmail()).isPresent())
+			throw new CustomerAlreadyExistsException();
 		custRepo.save(customer);
 	}
 	
@@ -138,22 +127,20 @@ public class AdminFacade extends ClientFacade {
 	// Updates a customer
 	public void updateCustomer(Customer customer) throws CustomerNotFoundException {
 		// Checks that the object to update exists in the DB and is of correct type.
-		if(custRepo.findById(customer.getCustomerId()).isPresent() && custRepo.findById(customer.getCustomerId()).get() instanceof Customer) 
-			custRepo.save(customer);
-		else throw new CustomerNotFoundException();
+		if(!custRepo.existsById(customer.getCustomerId())) 
+			throw new CustomerNotFoundException();
+		custRepo.save(customer);
 	}
 	
 	
 	// Deletes a customer by ID
 	public void deleteCustomer(int custId) throws CustomerNotFoundException {
-		Customer customer = custRepo.findById(custId).get();
-		if(custRepo.findById(custId).isPresent() && customer instanceof Customer) {
-			customer.getCoupons().clear();
-			custRepo.save(customer);
-		
-			custRepo.deleteById(custId);
+		Customer customer = custRepo.findById(custId).orElseThrow(CustomerNotFoundException::new);
+		// Detaches coupons from the customer and saves before deleting.
+		for(Coupon coup : customer.getCoupons()) {
+			coup.getPurchasedBy().remove(customer);
+			coupRepo.save(coup);
 		}
-		else throw new CustomerNotFoundException();
 	}
 	
 	
