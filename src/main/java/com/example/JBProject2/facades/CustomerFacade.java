@@ -53,7 +53,6 @@ public class CustomerFacade extends ClientFacade {
 	
 	// Return all coupons purchased by customer
 	public List<Coupon> getAllCustomerCoupons(){
-		//return cusRepo.findById(loggedCustomerId).get().getCoupons();
 		return getLoggedCustomer().getCoupons();
 	}
 	
