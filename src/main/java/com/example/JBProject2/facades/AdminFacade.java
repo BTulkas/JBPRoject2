@@ -117,7 +117,7 @@ public class AdminFacade extends ClientFacade {
 	
 	// Adds a customer to the DB
 	public void addCustomer(Customer customer) throws CustomerAlreadyExistsException {
-		// Checks for duplicate name or email
+		// Checks for duplicate email
 		if(custRepo.findCustomerByEmail(customer.getEmail()).isPresent())
 			throw new CustomerAlreadyExistsException();
 		custRepo.save(customer);
@@ -126,7 +126,7 @@ public class AdminFacade extends ClientFacade {
 	
 	// Updates a customer
 	public void updateCustomer(Customer customer) throws CustomerNotFoundException {
-		// Checks that the object to update exists in the DB and is of correct type.
+		// Checks that the object to update exists in the DB.
 		if(!custRepo.existsById(customer.getCustomerId())) 
 			throw new CustomerNotFoundException();
 		custRepo.save(customer);
@@ -141,6 +141,7 @@ public class AdminFacade extends ClientFacade {
 			coup.getPurchasedBy().remove(customer);
 			coupRepo.save(coup);
 		}
+		custRepo.deleteById(custId);
 	}
 	
 	

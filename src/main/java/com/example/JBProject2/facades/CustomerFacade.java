@@ -53,7 +53,8 @@ public class CustomerFacade extends ClientFacade {
 	
 	// Return all coupons purchased by customer
 	public List<Coupon> getAllCustomerCoupons(){
-		return cusRepo.findById(loggedCustomerId).get().getCoupons();
+		//return cusRepo.findById(loggedCustomerId).get().getCoupons();
+		return getLoggedCustomer().getCoupons();
 	}
 	
 	
@@ -72,6 +73,7 @@ public class CustomerFacade extends ClientFacade {
 	
 	
 	// Returns all customer coupons up to specific price
+	// Could have done this in coupon repository, but wanted to show the logic
 	public Set<Coupon> getCustomerCouponsByPrice(double maxPrice){
 		// Initiate HashSet to be returned
 		Set<Coupon> coupons = new HashSet<>();
@@ -94,25 +96,20 @@ public class CustomerFacade extends ClientFacade {
 		// Checks that the customer didn't already buy this coupon.
 		for(Coupon coup : getAllCustomerCoupons()) {
 			// Only checks ID, so an updated coupon will register as already purchased. Feature, not bug.
-			if(coup.getCouponId() == coupon.getCouponId()) throw new CouponAlreadyExistsException();
+			if(coup.getCouponId() == coupon.getCouponId())
+				throw new CouponAlreadyExistsException();
 		}
 		
 		// Checks that the coupon exists, is in stock and not expired, although all these checks should have happened already.
-		if(coupRepo.existsById(coupon.getCouponId()) 
-				&& coupon.getAmount() > 0
-				&& coupon.getEndDate().after(new Date(Calendar.getInstance().getTimeInMillis()))) {
-			// Reduces coupon stock amount by 1.
-			coupon.setAmount(coupon.getAmount()-1);
-			coupon.getPurchasedBy().add(getLoggedCustomer());
-			coupRepo.save(coupon);
+		if(!coupRepo.existsById(coupon.getCouponId()) 
+				|| coupon.getAmount() <= 0
+				|| (new Date(Calendar.getInstance().getTimeInMillis())).after(coupon.getEndDate()))
+			throw new CouponExpiredOrNoStockException();
 			
-			/*
-			 * // Save the coupon to customer. Customer cust = getLoggedCustomer();
-			 * cust.getCoupons().add(coupon); cusRepo.save(cust);
-			 */
-			
-		}
-		else throw new CouponExpiredOrNoStockException();
+		// Reduces coupon stock amount by 1.
+		coupon.setAmount(coupon.getAmount()-1);
+		coupon.getPurchasedBy().add(getLoggedCustomer());
+		coupRepo.save(coupon);
 	}
 
 }
