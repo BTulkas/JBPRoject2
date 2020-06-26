@@ -113,13 +113,11 @@ public class CompanyFacade extends ClientFacade {
 		if(!coupRepo.existsById(coupon.getCouponId()) || coupon.getCompany().getCompanyId() != loggedCompanyId)
 			throw new CouponNotFoundException();
 			
-		// Removes the coupon from customers by reverse query
-		for(Customer cust : coupon.getPurchasedBy()) {
-			cust.getCoupons().remove(coupon);
-			custRepo.save(cust);
-		}
-		
-		coupRepo.deleteById(coupon.getCouponId());
+		// Clears coupon purchases.
+		coupon.getPurchasedBy().clear();
+		coupRepo.save(coupon);
+		// Deletes the coupon.
+		coupRepo.delete(coupon);
 		
 	}
 	

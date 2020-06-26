@@ -2,8 +2,6 @@ package com.example.JBProject2.beans;
 
 import java.sql.Date;
 import java.util.List;
-import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;

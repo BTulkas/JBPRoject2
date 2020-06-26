@@ -1,8 +1,6 @@
 package com.example.JBProject2.facades;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -80,13 +78,11 @@ public class AdminFacade extends ClientFacade {
 		Company comp = compRepo.findById(compId).orElseThrow(CompanyNotFoundException::new);
 			// Deletes all coupons by that company.
 			for(Coupon coup : comp.getCoupons()) {
-				// Removes the coupon from customers by reverse query
-				for (Customer cust : getAllCustomers()) {
-					cust.getCoupons().remove(coup);
-					custRepo.save(cust);
-				}
-
-			coupRepo.delete(coup);
+				// Clears coupon purchase history.
+				coup.getPurchasedBy().clear();
+				coupRepo.save(coup);
+				// Deletes the coupon.
+				coupRepo.delete(coup);
 			}
 		
 		compRepo.deleteById(compId);

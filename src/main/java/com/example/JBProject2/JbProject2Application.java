@@ -26,36 +26,23 @@ public class JbProject2Application {
 		
 		CouponExpirationDailyJob dailyJob = ctx.getBean(CouponExpirationDailyJob.class);
 		
-		dailyJob.start();
-		
-		
-		
-		
-		
 		
 		  try { test.createDatabase(); } catch (WrongLoginException |
 		  CompanyAlreadyExistsException | CouponAlreadyExistsException |
 		  CustomerAlreadyExistsException | CouponExpiredOrNoStockException | CustomerNotFoundException | CompanyNotFoundException e) {
 		  System.out.println(e.getMessage()); }
 		 
-		 
-		 		 
+
 		
-		
-		
-		
-		
-		  try { test.testAll(); } catch (WrongLoginException |
+		  
+		  try { test.testAll(); dailyJob.start();} catch (WrongLoginException |
 		  CompanyAlreadyExistsException | CompanyNotFoundException |
 		  CustomerAlreadyExistsException | CustomerNotFoundException |
 		  CouponAlreadyExistsException | CouponNotFoundException |
 		  CouponExpiredOrNoStockException | DataMismatchException e) { System.out.println(e.getMessage()); }
 		  finally { dailyJob.quit(); }
 		 
-		 
-		 
-		 
-		
+
 		
 		
 		/*
@@ -64,9 +51,7 @@ public class JbProject2Application {
 		 * System.out.println(e.getMessage());; }
 		 */
 		 		 
-		  
-		
-		
+
 		
 		
 		/*

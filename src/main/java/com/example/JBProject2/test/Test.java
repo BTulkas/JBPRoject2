@@ -109,6 +109,7 @@ public class Test {
 		testCompany();
 		testCustomer();
 		testDeletes();
+		testDailyJob();
 	}
 
 	
@@ -266,7 +267,9 @@ public class Test {
 		Calendar cal = Calendar.getInstance();
 		cal.set(2020, Calendar.MARCH, 19);
 				
-		coupRepo.findById(7).get().setEndDate(new Date(cal.getTimeInMillis()));
+		Coupon coup = coupRepo.findById(11).get();
+		coup.setEndDate(new Date(cal.getTimeInMillis()));
+		coupRepo.save(coup);
 	}
 	
 
