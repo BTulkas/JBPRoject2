@@ -86,7 +86,7 @@ public class CompanyFacade extends ClientFacade {
 	 */
 	
 	// Add a coupon
-	public void addCoupon(Coupon coupon) throws CouponAlreadyExistsException {
+	public Coupon addCoupon(Coupon coupon) throws CouponAlreadyExistsException {
 		// Checks for duplicate titles within the same company
 		  for(Coupon coup : getCompanyCoupons()) {
 			  if(coupon.getTitle().equals(coup.getTitle()))
@@ -94,16 +94,18 @@ public class CompanyFacade extends ClientFacade {
 			  }
 
 		coupRepo.save(coupon);
+		return coupon;
 	}
 	
 	
 	// Updates a coupon by Coupon object
-	public void updateCoupon(Coupon coupon) throws CouponNotFoundException {
+	public Coupon updateCoupon(Coupon coupon) throws CouponNotFoundException {
 		// Checks the coupon exists and belongs to the company before saving.
 		if(!coupRepo.existsById(coupon.getCouponId()) || coupon.getCompany().getCompanyId() != loggedCompanyId)
 			throw new CouponNotFoundException();
 		
 		coupRepo.save(coupon);
+		return coupon;
 	}
 	
 	

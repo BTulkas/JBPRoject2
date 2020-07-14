@@ -55,19 +55,22 @@ public class AdminFacade extends ClientFacade {
 	 */
 	
 	// Add company to DB
-	public void addCompany(Company company) throws CompanyAlreadyExistsException {
+	public Company addCompany(Company company) throws CompanyAlreadyExistsException {
 		// Checks for duplicate name or email. Calls findAll instead of getAllCompanies to avoid redundant logic
-		if(compRepo.findCompanyByEmail(company.getEmail()).isEmpty() && compRepo.findCompanyByName(company.getName()).isEmpty())
-			compRepo.save(company);
-		else throw new CompanyAlreadyExistsException();
+		if(compRepo.findCompanyByEmail(company.getEmail()).isPresent() || compRepo.findCompanyByName(company.getName()).isPresent())
+			throw new CompanyAlreadyExistsException();
+		
+		compRepo.save(company);
+		return company;
 	}
 	
 	
 	// Updates a company. Name and ID update will be blocked client-side.
-	public void updateCompany(Company company) throws CompanyNotFoundException {
+	public Company updateCompany(Company company) throws CompanyNotFoundException {
 		// Checks that the object to update exists in the DB.
 		compRepo.findById(company.getCompanyId()).orElseThrow(CompanyNotFoundException::new);
 		compRepo.save(company);
+		return company;
 
 	}
 	
@@ -112,20 +115,22 @@ public class AdminFacade extends ClientFacade {
 	 */
 	
 	// Adds a customer to the DB
-	public void addCustomer(Customer customer) throws CustomerAlreadyExistsException {
+	public Customer addCustomer(Customer customer) throws CustomerAlreadyExistsException {
 		// Checks for duplicate email
 		if(custRepo.findCustomerByEmail(customer.getEmail()).isPresent())
 			throw new CustomerAlreadyExistsException();
 		custRepo.save(customer);
+		return customer;
 	}
 	
 	
 	// Updates a customer
-	public void updateCustomer(Customer customer) throws CustomerNotFoundException {
+	public Customer updateCustomer(Customer customer) throws CustomerNotFoundException {
 		// Checks that the object to update exists in the DB.
 		if(!custRepo.existsById(customer.getCustomerId())) 
 			throw new CustomerNotFoundException();
 		custRepo.save(customer);
+		return customer;
 	}
 	
 	
