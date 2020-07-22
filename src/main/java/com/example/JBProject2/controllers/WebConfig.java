@@ -13,6 +13,7 @@ public class WebConfig {
 
 	@Bean
 	public Map<String, ClientFacade> sessions(){
+		System.out.println("creating sessions!");
 		return new HashMap<String, ClientFacade>();
 	}
 

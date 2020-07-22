@@ -20,11 +20,12 @@ import com.example.JBProject2.test.Test;
 public class JbProject2Application {
 
 	public static void main(String[] args) {
-		ConfigurableApplicationContext ctx = SpringApplication.run(JbProject2Application.class, args);
+		//ConfigurableApplicationContext ctx = 
+				SpringApplication.run(JbProject2Application.class, args);
 		
-		Test test = ctx.getBean(Test.class);
+		//Test test = ctx.getBean(Test.class);
 		
-		CouponExpirationDailyJob dailyJob = ctx.getBean(CouponExpirationDailyJob.class);
+		//CouponExpirationDailyJob dailyJob = ctx.getBean(CouponExpirationDailyJob.class);
 		
 		
 		/*

@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import com.example.JBProject2.db.CouponRepository;
 import com.example.JBProject2.db.CustomerRepository;
 import com.example.JBProject2.facades.exceptions.CouponAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CouponExpiredOrNoStockException;
+import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
 
 @Service
 @Scope("prototype")
@@ -27,7 +29,7 @@ public class CustomerFacade extends ClientFacade {
 	@Autowired
 	CustomerRepository cusRepo;
 	@Autowired
-	CouponRepository coupRepo;
+	CouponRepository coupRepo;	
 	
 	
 	
@@ -44,6 +46,8 @@ public class CustomerFacade extends ClientFacade {
 	// Returns the logged-in Customer object. In case you need it.
 	public Customer getLoggedCustomer() {
 		return cusRepo.findById(loggedCustomerId).get();
+
+		
 	}
 	
 	/*
@@ -91,18 +95,18 @@ public class CustomerFacade extends ClientFacade {
 	 */
 	
 	// Purchase a coupon
-	public void purchaseCoupon(Coupon coupon) throws CouponAlreadyExistsException, CouponExpiredOrNoStockException {
+	public void purchaseCoupon(int couponId) throws CouponAlreadyExistsException, CouponExpiredOrNoStockException, CouponNotFoundException {
+		Coupon coupon = coupRepo.findById(couponId).orElseThrow(CouponNotFoundException::new);
 		// Checks that the customer didn't already buy this coupon.
 		for(Coupon coup : getAllCustomerCoupons()) {
 			// Only checks ID, so an updated coupon will register as already purchased. Feature, not bug.
-			if(coup.getCouponId() == coupon.getCouponId())
+			if(coup.getCouponId() == couponId)
 				throw new CouponAlreadyExistsException();
 		}
 		
 		// Checks that the coupon exists, is in stock and not expired, although all these checks should have happened already.
-		if(!coupRepo.existsById(coupon.getCouponId()) 
-				|| coupon.getAmount() <= 0
-				|| (new Date(Calendar.getInstance().getTimeInMillis())).after(coupon.getEndDate()))
+		if(coupon.getAmount() <= 0
+			|| (new Date(Calendar.getInstance().getTimeInMillis())).after(coupon.getEndDate()))
 			throw new CouponExpiredOrNoStockException();
 			
 		// Reduces coupon stock amount by 1.

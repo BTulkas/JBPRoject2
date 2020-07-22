@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,10 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.example.JBProject2.beans.Coupon;
 import com.example.JBProject2.facades.ClientFacade;
+import com.example.JBProject2.facades.CustomerFacade;
 import com.example.JBProject2.facades.GenericFacade;
+import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
+import com.example.JBProject2.facades.exceptions.CustomerNotFoundException;
 import com.example.JBProject2.login_manager.ClientType;
 import com.example.JBProject2.login_manager.LoginManager;
 import com.example.JBProject2.login_manager.exception.WrongLoginException;
@@ -43,11 +47,20 @@ public class ClientController {
 		return genFace.getAllCoupons();
 	}
 	
-	@PostMapping("login")
-    public ResponseEntity<?> login(@RequestBody String email, String password, ClientType clientType) throws WrongLoginException {
+	@GetMapping("compfromcoup/{coupId}")
+	public ResponseEntity<?> getCompanyFromCoupon(@PathVariable int coupId) throws CouponNotFoundException{
+		return ResponseEntity.ok(genFace.getCouponCompany(coupId));
+	}
+	
+	@PostMapping("login/{email}/{password}/{clientType}")
+    public ResponseEntity<?> login(@PathVariable String email, @PathVariable String password, @PathVariable String clientType) throws WrongLoginException, CustomerNotFoundException {
 		String token = UUID.randomUUID().toString();
-		sessions.put(token, logMan.login(email, password, clientType));
-		return ResponseEntity.ok(token);
+		ClientFacade loggedCustomer = logMan.login(email, password, ClientType.valueOf(clientType));
+		if(loggedCustomer instanceof CustomerFacade) {
+			sessions.put(token, (CustomerFacade)loggedCustomer);
+			System.out.println(sessions);
+			return ResponseEntity.ok(token);
+		} else throw new CustomerNotFoundException();
 
 	}
 	

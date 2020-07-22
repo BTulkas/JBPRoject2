@@ -20,18 +20,22 @@ public class LoginManager {
 	
     public ClientFacade login(String email, String password, ClientType clientType) throws WrongLoginException {
 
-        switch(clientType){
+        System.out.println("login");
+    	switch(clientType){
             case Administrator:
             	AdminFacade adminFace = ctx.getBean(AdminFacade.class);
-            	if(adminFace.login(email, password)) return adminFace;
+            	if(adminFace.login(email, password))
+            		return adminFace;
                 else throw new WrongLoginException();
             case Company:
             	CompanyFacade compFace = ctx.getBean(CompanyFacade.class);
-                if(compFace.login(email, password)) return compFace;
+                if(compFace.login(email, password))
+                	return compFace;
                 else throw new WrongLoginException();
             case Customer:
             	CustomerFacade custFace = ctx.getBean(CustomerFacade.class);
-                if(custFace.login(email, password)) return custFace;
+                if(custFace.login(email, password))
+                	return custFace;
                 else throw new WrongLoginException();
             default:
                     return null;

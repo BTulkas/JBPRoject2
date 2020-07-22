@@ -11,6 +11,10 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 @Entity
 @Table(name="companies")
 public class Company {
@@ -21,7 +25,7 @@ public class Company {
 	
 	@Column(nullable=false)
 	private String name, email, password;
-	
+
 	@OneToMany(mappedBy="company", fetch=FetchType.EAGER)
 	private List<Coupon> coupons;
 	

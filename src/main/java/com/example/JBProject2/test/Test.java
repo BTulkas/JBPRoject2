@@ -36,7 +36,7 @@ public class Test {
 	@Autowired
 	CouponRepository coupRepo;
 	
-	public void createDatabase() throws WrongLoginException, CompanyAlreadyExistsException, CouponAlreadyExistsException, CustomerAlreadyExistsException, CouponExpiredOrNoStockException, CustomerNotFoundException, CompanyNotFoundException {
+	public void createDatabase() throws WrongLoginException, CompanyAlreadyExistsException, CouponAlreadyExistsException, CustomerAlreadyExistsException, CouponExpiredOrNoStockException, CustomerNotFoundException, CompanyNotFoundException, CouponNotFoundException {
 		AdminFacade loggedAdmin = (AdminFacade) logMan.login("admin@admin.co.il", "admin", ClientType.Administrator);
 		
 		// Company generator.
@@ -93,9 +93,9 @@ public class Test {
 	    // Capitalist Dream (auto-coupon-buyer). 
 		for (Coupon coup : coupRepo.findAll()) {
 			if(coup.getCouponId() < 11) 
-				loggedCustomer.purchaseCoupon(coup);
+				loggedCustomer.purchaseCoupon(coup.getCouponId());
 			if(coup.getCouponId() >= 5)
-				loggedCustomer2.purchaseCoupon(coup);
+				loggedCustomer2.purchaseCoupon(coup.getCouponId());
 			 }
 		
 		// Post-purchase amount.

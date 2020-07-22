@@ -12,6 +12,11 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 @Entity
 @Table(name="coupons")
 public class Coupon {
@@ -20,6 +25,7 @@ public class Coupon {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int couponId;
 	
+	@JsonIgnore
 	@ManyToOne
 	private Company company;
 	
@@ -44,6 +50,7 @@ public class Coupon {
 	@Column
 	private String image;
 	
+	@JsonIgnore
 	@ManyToMany(fetch=FetchType.EAGER)
 	private List<Customer> purchasedBy;
 	
