@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.example.JBProject2.beans.Coupon;
+import com.example.JBProject2.beans.Session;
 import com.example.JBProject2.facades.ClientFacade;
-import com.example.JBProject2.facades.CustomerFacade;
 import com.example.JBProject2.facades.GenericFacade;
 import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
 import com.example.JBProject2.facades.exceptions.CustomerNotFoundException;
@@ -39,7 +39,7 @@ public class ClientController {
 	LoginManager logMan;
 	
 	@Autowired
-	Map<String, ClientFacade> sessions;
+	Map<String, Session> sessions;
 	
 	
 	@GetMapping
@@ -54,10 +54,12 @@ public class ClientController {
 	
 	@PostMapping("login/{email}/{password}/{clientType}")
     public ResponseEntity<?> login(@PathVariable String email, @PathVariable String password, @PathVariable String clientType) throws WrongLoginException, CustomerNotFoundException {
+		// Creates unique token
 		String token = UUID.randomUUID().toString();
 		ClientFacade loggedCustomer = logMan.login(email, password, ClientType.valueOf(clientType));
-		if(loggedCustomer instanceof CustomerFacade) {
-			sessions.put(token, (CustomerFacade)loggedCustomer);
+		if(loggedCustomer instanceof ClientFacade) {
+			Session session = new Session(loggedCustomer, System.currentTimeMillis());
+			sessions.put(token, session);
 			System.out.println(sessions);
 			return ResponseEntity.ok(token);
 		} else throw new CustomerNotFoundException();
@@ -65,9 +67,8 @@ public class ClientController {
 	}
 	
 	@PostMapping("logout")
-	public RedirectView logout(@RequestBody String token){
+	public void logout(@RequestBody String token){
 		sessions.remove(token);
-		return new RedirectView("");
 	}
 
 }

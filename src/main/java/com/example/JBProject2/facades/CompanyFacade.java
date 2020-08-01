@@ -9,12 +9,12 @@ import org.springframework.stereotype.Service;
 import com.example.JBProject2.beans.CategoryType;
 import com.example.JBProject2.beans.Company;
 import com.example.JBProject2.beans.Coupon;
-import com.example.JBProject2.beans.Customer;
 import com.example.JBProject2.db.CompanyRepository;
 import com.example.JBProject2.db.CouponRepository;
 import com.example.JBProject2.db.CustomerRepository;
 import com.example.JBProject2.facades.exceptions.CouponAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
+import com.example.JBProject2.login_manager.exception.WrongLoginException;
 
 @Service
 @Scope("prototype")
@@ -30,8 +30,8 @@ public class CompanyFacade extends ClientFacade {
 	CustomerRepository custRepo;
 	
 	
-	public boolean login(String email, String password) {
-		Company comp = compRepo.findCompanyByEmail(email).get();
+	public boolean login(String email, String password) throws WrongLoginException {
+		Company comp = compRepo.findCompanyByEmail(email).orElseThrow(WrongLoginException::new);
 		if(comp.getPassword().equals(password)) {
 			// Saves the company ID for use in facade methods.
 			loggedCompanyId = comp.getCompanyId();
@@ -60,7 +60,9 @@ public class CompanyFacade extends ClientFacade {
 	
 	// Returns one coupon by ID
 	public Coupon getOneCoupon(int coupId) throws CouponNotFoundException {
+
 		Coupon coup = coupRepo.findById(coupId).orElseThrow(CouponNotFoundException::new);
+
 		if(coup.getCompany().getCompanyId() != loggedCompanyId)
 			throw new CouponNotFoundException();
 		return coup;
@@ -91,7 +93,10 @@ public class CompanyFacade extends ClientFacade {
 		  for(Coupon coup : getCompanyCoupons()) {
 			  if(coupon.getTitle().equals(coup.getTitle()))
 				  throw new CouponAlreadyExistsException();
-			  }
+		  }
+		
+	    // Connects new coupon to the logged company
+	    coupon.setCompany(getLoggedCompany());
 
 		coupRepo.save(coupon);
 		return coupon;
@@ -115,6 +120,7 @@ public class CompanyFacade extends ClientFacade {
 		if(!coupRepo.existsById(coupon.getCouponId()) || coupon.getCompany().getCompanyId() != loggedCompanyId)
 			throw new CouponNotFoundException();
 			
+
 		// Clears coupon purchases.
 		coupon.getPurchasedBy().clear();
 		coupRepo.save(coupon);

@@ -1,8 +1,9 @@
 package com.example.JBProject2.login_manager;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import com.example.JBProject2.facades.AdminFacade;
@@ -11,16 +12,15 @@ import com.example.JBProject2.facades.CompanyFacade;
 import com.example.JBProject2.facades.CustomerFacade;
 import com.example.JBProject2.login_manager.exception.WrongLoginException;
 
-@Service
+@Component
 @Scope("prototype")
 public class LoginManager {
 	
 	@Autowired
-	ConfigurableApplicationContext ctx;
+	ApplicationContext ctx;
 	
     public ClientFacade login(String email, String password, ClientType clientType) throws WrongLoginException {
 
-        System.out.println("login");
     	switch(clientType){
             case Administrator:
             	AdminFacade adminFace = ctx.getBean(AdminFacade.class);

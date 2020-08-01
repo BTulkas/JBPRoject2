@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.example.JBProject2.controllers.exceptions.AccessDeniedException;
+import com.example.JBProject2.controllers.exceptions.LoginExpiredException;
 import com.example.JBProject2.facades.exceptions.CompanyAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CompanyNotFoundException;
 import com.example.JBProject2.facades.exceptions.CouponAlreadyExistsException;
@@ -14,6 +16,7 @@ import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
 import com.example.JBProject2.facades.exceptions.CustomerAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CustomerNotFoundException;
 import com.example.JBProject2.facades.exceptions.DataMismatchException;
+import com.example.JBProject2.login_manager.exception.WrongLoginException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -56,6 +59,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(DataMismatchException.class)
 	public ResponseEntity<String> dataMismatchException(Exception e){
 		return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e.getMessage());
+	}
+	
+	@ExceptionHandler(WrongLoginException.class)
+	public ResponseEntity<String> wrongLoginException(Exception e){
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+	}
+	
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<String> accessDeniedException(Exception e){
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+	}
+	
+	@ExceptionHandler(LoginExpiredException.class)
+	public ResponseEntity<String> loginExpiredException(Exception e){
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
 	}
 	
 

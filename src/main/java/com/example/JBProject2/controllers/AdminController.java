@@ -1,6 +1,7 @@
 package com.example.JBProject2.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,11 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.example.JBProject2.beans.Company;
 import com.example.JBProject2.beans.Customer;
+import com.example.JBProject2.beans.Session;
+import com.example.JBProject2.controllers.exceptions.AccessDeniedException;
+import com.example.JBProject2.controllers.exceptions.LoginExpiredException;
 import com.example.JBProject2.facades.AdminFacade;
+import com.example.JBProject2.facades.ClientFacade;
 import com.example.JBProject2.facades.exceptions.CompanyAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CompanyNotFoundException;
 import com.example.JBProject2.facades.exceptions.CustomerAlreadyExistsException;
@@ -30,35 +35,57 @@ public class AdminController {
 	
 	@Autowired
 	private AdminFacade adFace;
+	
+	@Autowired
+	private Map<String, Session> sessions;
+	
+	private AdminFacade checkFacade(String token) throws AccessDeniedException, LoginExpiredException {
+		ClientFacade loggedAdmin = sessions.get(token).getFacade();
+		Session lastAction = sessions.get(token);
+		
+		if(!(loggedAdmin instanceof AdminFacade))
+			throw new AccessDeniedException();
+		if(System.currentTimeMillis() - lastAction.getLastActive() > 1000*60*1) {
+			throw new LoginExpiredException();
+		}
+		
+		lastAction.setLastActive(System.currentTimeMillis());
+		return (AdminFacade)loggedAdmin;
+	}
 
 	/*
 	 * Company mappings
 	 */
 	
-	@GetMapping("companies")
-	public List<Company> getAllCompanies(){
-		return adFace.getAllCompanies();
+	@GetMapping("companies/{token}")
+	public List<Company> getAllCompanies(@PathVariable String token) throws AccessDeniedException, LoginExpiredException{
+		AdminFacade loggedAdmin = checkFacade(token); 
+		return loggedAdmin.getAllCompanies();
 	}
 	
-	@GetMapping("company/{compId}")
-	public ResponseEntity<?> getOneCompany(@PathVariable int compId) throws CompanyNotFoundException{
-		return ResponseEntity.ok(adFace.getOneCompany(compId));
+	@GetMapping("company/{token}/{compId}")
+	public ResponseEntity<?> getOneCompany(@PathVariable String token, @PathVariable int compId) throws CompanyNotFoundException, AccessDeniedException, LoginExpiredException{
+		AdminFacade loggedAdmin = checkFacade(token); 
+		return ResponseEntity.ok(((AdminFacade) loggedAdmin).getOneCompany(compId));
 	}
 	
-	@PostMapping("companies")
-	public ResponseEntity<?> addCompany(@RequestBody Company company) throws CompanyAlreadyExistsException{
-		return ResponseEntity.ok(adFace.addCompany(company));
+	@PostMapping("companies/{token}")
+	public ResponseEntity<?> addCompany(@PathVariable String token, @RequestBody Company company) throws CompanyAlreadyExistsException, AccessDeniedException, LoginExpiredException{
+		AdminFacade loggedAdmin = checkFacade(token); 
+		return ResponseEntity.ok(loggedAdmin.addCompany(company));
 	}
 	
-	@PutMapping("company/update")
-	public ResponseEntity<?> updateCompany(@RequestBody Company company) throws CompanyNotFoundException{
-		return ResponseEntity.ok(adFace.updateCompany(company));
+	@PutMapping("company/update/{token}")
+	public ResponseEntity<?> updateCompany(@PathVariable String token, @RequestBody Company company) throws CompanyNotFoundException, AccessDeniedException, LoginExpiredException{
+		AdminFacade loggedAdmin = checkFacade(token); 
+		return ResponseEntity.ok(loggedAdmin.updateCompany(company));
 	}
 	
-	 @DeleteMapping("company/delete/{compId}")
-	 public RedirectView deleteCompany(@PathVariable int compId) throws CompanyNotFoundException{
-		 adFace.deleteCompany(compId);
-		 return new RedirectView("admin/companies");
+	 @DeleteMapping("company/delete/{token}/{compId}")
+	 public ResponseEntity<?> deleteCompany(@PathVariable String token, @PathVariable int compId) throws CompanyNotFoundException, AccessDeniedException, LoginExpiredException{
+		 AdminFacade loggedAdmin = checkFacade(token);
+		 loggedAdmin.deleteCompany(compId);
+		 return ResponseEntity.ok("Successfully increased unemployment");
 	 }
 	 
 	 
@@ -66,30 +93,35 @@ public class AdminController {
 	 * Customer mappings
 	 */
 	 
-	 @GetMapping("customers")
-	 public List<Customer> getAllCustomers(){
-		 return adFace.getAllCustomers();
+	 @GetMapping("customers/{token}")
+	 public List<Customer> getAllCustomers(@PathVariable String token) throws AccessDeniedException, LoginExpiredException{
+		 AdminFacade loggedAdmin = checkFacade(token);
+		 return loggedAdmin.getAllCustomers();
 	 }
 	 
-	 @GetMapping("customer/{custId}")
-	 public ResponseEntity<?> getOneCustomer(@PathVariable int custId) throws CompanyNotFoundException{
-		 return ResponseEntity.ok(adFace.getOneCompany(custId));
+	 @GetMapping("customer/{token}/{custId}")
+	 public ResponseEntity<?> getOneCustomer(@PathVariable String token, @PathVariable int custId) throws CustomerNotFoundException, AccessDeniedException, LoginExpiredException {
+		 AdminFacade loggedAdmin = checkFacade(token);
+		 return ResponseEntity.ok(loggedAdmin.getOneCustomer(custId));
 	 }
 	 
-	 @PostMapping("customers")
-	 public ResponseEntity<?> addCustomer(@RequestBody Customer customer) throws CustomerAlreadyExistsException{
-		 return ResponseEntity.ok(adFace.addCustomer(customer));
+	 @PostMapping("customers/{token}")
+	 public ResponseEntity<?> addCustomer(@PathVariable String token, @RequestBody Customer customer) throws CustomerAlreadyExistsException, AccessDeniedException, LoginExpiredException{
+		 AdminFacade loggedAdmin = checkFacade(token);
+		 return ResponseEntity.ok(loggedAdmin.addCustomer(customer));
 	 }
 	 
-	 @PutMapping("customer/update")
-	 public ResponseEntity<?> updateCustomer(@RequestBody Customer customer) throws CustomerNotFoundException{
-		 return ResponseEntity.ok(adFace.updateCustomer(customer));
+	 @PutMapping("customer/update/{token}")
+	 public ResponseEntity<?> updateCustomer(@PathVariable String token, @RequestBody Customer customer) throws CustomerNotFoundException, AccessDeniedException, LoginExpiredException{
+		 AdminFacade loggedAdmin = checkFacade(token);
+		 return ResponseEntity.ok(loggedAdmin.updateCustomer(customer));
 	 }
 	 
-	 @DeleteMapping("customer/delete/{custId}")
-	 public RedirectView deleteCustomer(@PathVariable int custId) throws CustomerNotFoundException {
-		 adFace.deleteCustomer(custId);
-		 return new RedirectView("admin/customers");
+	 @DeleteMapping("customer/delete/{token}/{custId}")
+	 public ResponseEntity<?> deleteCustomer(@PathVariable String token, @PathVariable int custId) throws CustomerNotFoundException, AccessDeniedException, LoginExpiredException {
+		 AdminFacade loggedAdmin = checkFacade(token);
+		 loggedAdmin.deleteCustomer(custId);
+		 return ResponseEntity.ok("Customer gone");
 	 }
 
 }

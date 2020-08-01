@@ -19,6 +19,7 @@ import com.example.JBProject2.db.CustomerRepository;
 import com.example.JBProject2.facades.exceptions.CouponAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CouponExpiredOrNoStockException;
 import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
+import com.example.JBProject2.login_manager.exception.WrongLoginException;
 
 @Service
 @Scope("prototype")
@@ -33,8 +34,8 @@ public class CustomerFacade extends ClientFacade {
 	
 	
 	
-	public boolean login(String email, String password) {
-		Customer cus = cusRepo.findCustomerByEmail(email).get();
+	public boolean login(String email, String password) throws WrongLoginException {
+		Customer cus = cusRepo.findCustomerByEmail(email).orElseThrow(WrongLoginException::new);
 		if(cus.getPassword().equals(password)) {
 			loggedCustomerId = cus.getCustomerId();
 			return true;

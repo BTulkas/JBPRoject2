@@ -12,10 +12,9 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 @Entity
 @Table(name="coupons")
@@ -25,7 +24,7 @@ public class Coupon {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int couponId;
 	
-	@JsonIgnore
+	@JsonProperty(access = Access.WRITE_ONLY)
 	@ManyToOne
 	private Company company;
 	
@@ -50,7 +49,7 @@ public class Coupon {
 	@Column
 	private String image;
 	
-	@JsonIgnore
+	@JsonProperty(access = Access.WRITE_ONLY)
 	@ManyToMany(fetch=FetchType.EAGER)
 	private List<Customer> purchasedBy;
 	

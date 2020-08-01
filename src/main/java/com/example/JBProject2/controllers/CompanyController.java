@@ -1,8 +1,9 @@
 package com.example.JBProject2.controllers;
 
+import java.util.Map;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,10 +14,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.RedirectView;
 
 import com.example.JBProject2.beans.CategoryType;
 import com.example.JBProject2.beans.Coupon;
+import com.example.JBProject2.beans.Session;
+import com.example.JBProject2.controllers.exceptions.AccessDeniedException;
+import com.example.JBProject2.controllers.exceptions.LoginExpiredException;
+import com.example.JBProject2.facades.ClientFacade;
 import com.example.JBProject2.facades.CompanyFacade;
 import com.example.JBProject2.facades.exceptions.CouponAlreadyExistsException;
 import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
@@ -29,41 +33,79 @@ public class CompanyController {
 	@Autowired
 	CompanyFacade compFace;
 	
+	@Autowired
+	private Map<String, Session> sessions;
 	
-	@GetMapping("coupons")
-	public Set<Coupon> getCompanyCoupons(){
-		return compFace.getCompanyCoupons();
+	
+	private CompanyFacade checkFacade(String token) throws AccessDeniedException, LoginExpiredException {
+		ClientFacade loggedCompany = sessions.get(token).getFacade();
+		Session lastAction = sessions.get(token);
+		
+		if(!(loggedCompany instanceof CompanyFacade))
+			throw new AccessDeniedException();
+		if(System.currentTimeMillis() - lastAction.getLastActive() > 1000*60*1) {
+			throw new LoginExpiredException();
+		}
+		
+		lastAction.setLastActive(System.currentTimeMillis());
+		return (CompanyFacade)loggedCompany;
 	}
 	
-	@GetMapping("coupon/{coupId}")
-	public ResponseEntity<?> getOneCoupon(@PathVariable int coupId) throws CouponNotFoundException{
-		return ResponseEntity.ok(compFace.getOneCoupon(coupId));
+	
+	@GetMapping("{token}")
+	public ResponseEntity<?> getLoggedCompany(@PathVariable String token) throws AccessDeniedException, LoginExpiredException {
+		CompanyFacade loggedComp = checkFacade(token);
+		return ResponseEntity.ok(loggedComp.getLoggedCompany());
 	}
 	
-	@GetMapping("category/{category}")
-	public Set<Coupon> getCouponsByCategory(@PathVariable CategoryType category){
-		return compFace.getCouponsByCategory(category);
+	@GetMapping("custsfromcoupon/{token}/{coupId}")
+	public ResponseEntity<?> getCustsFromCoupon(@PathVariable String token, @PathVariable int coupId) throws AccessDeniedException, CouponNotFoundException, LoginExpiredException {
+		CompanyFacade loggedComp = checkFacade(token);
+		return ResponseEntity.ok(loggedComp.getOneCoupon(coupId).getPurchasedBy());
 	}
 	
-	@GetMapping("price/{price}")
-	public Set<Coupon> getCouponsByPrice(@PathVariable double maxPrice){
-		return compFace.getCouponsByPrice(maxPrice);
+	@GetMapping("{token}/coupons")
+	public Set<Coupon> getCompanyCoupons(@PathVariable String token) throws AccessDeniedException, LoginExpiredException{
+		CompanyFacade loggedComp = checkFacade(token);
+		return loggedComp.getCompanyCoupons();
 	}
 	
-	@PostMapping
-	public ResponseEntity<?> addCoupon(@RequestBody Coupon coupon) throws CouponAlreadyExistsException{
-		return ResponseEntity.ok(compFace.addCoupon(coupon));
+	@GetMapping("{token}/coupon/{coupId}")
+	public ResponseEntity<?> getOneCoupon(@PathVariable String token, @PathVariable int coupId) throws CouponNotFoundException, AccessDeniedException, LoginExpiredException{
+		CompanyFacade loggedComp = checkFacade(token);
+		return ResponseEntity.ok(loggedComp.getOneCoupon(coupId));
 	}
 	
-	@PutMapping("coupon/update")
-	public ResponseEntity<?> updateCoupon(@RequestBody Coupon coupon) throws CouponNotFoundException{
-		return ResponseEntity.ok(compFace.updateCoupon(coupon));
+	@GetMapping("{token}/category/{category}")
+	public Set<Coupon> getCouponsByCategory(@PathVariable String token, @PathVariable CategoryType category) throws AccessDeniedException, LoginExpiredException{
+		CompanyFacade loggedComp = checkFacade(token);
+		return (loggedComp).getCouponsByCategory(category);
 	}
 	
-	@DeleteMapping("coupon/delete")
-	public RedirectView deleteCoupon(@RequestBody Coupon coupon) throws CouponNotFoundException {
-		compFace.deleteCoupon(coupon);
-		return new RedirectView("company/coupons");
+	@GetMapping("{token}/price/{maxPrice}")
+	public Set<Coupon> getCouponsByPrice(@PathVariable String token, @PathVariable double maxPrice) throws AccessDeniedException, LoginExpiredException{
+		CompanyFacade loggedComp = checkFacade(token);
+		return loggedComp.getCouponsByPrice(maxPrice);
+	}
+	
+	@PostMapping("{token}")
+	public ResponseEntity<?> addCoupon(@PathVariable String token, @RequestBody Coupon coupon) throws CouponAlreadyExistsException, AccessDeniedException, LoginExpiredException{
+		CompanyFacade loggedComp = checkFacade(token);
+		return ResponseEntity.ok(loggedComp.addCoupon(coupon));
+	}
+	
+	@PutMapping("{token}/coupon/update")
+	public ResponseEntity<?> updateCoupon(@PathVariable String token, @RequestBody Coupon coupon) throws CouponNotFoundException, AccessDeniedException, LoginExpiredException{
+		CompanyFacade loggedComp = checkFacade(token);
+		return ResponseEntity.ok(loggedComp.updateCoupon(coupon));
+	}
+	
+	@DeleteMapping("{token}/coupon/delete/{coupId}")
+	public ResponseEntity<?> deleteCoupon(@PathVariable String token, @PathVariable int coupId) throws CouponNotFoundException, AccessDeniedException, LoginExpiredException {
+		CompanyFacade loggedComp = checkFacade(token);
+		Coupon coupon = loggedComp.getOneCoupon(coupId);
+		loggedComp.deleteCoupon(coupon);
+		return ResponseEntity.ok("The deed is done.");
 	}
 	
 
