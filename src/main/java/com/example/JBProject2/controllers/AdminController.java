@@ -45,7 +45,7 @@ public class AdminController {
 		
 		if(!(loggedAdmin instanceof AdminFacade))
 			throw new AccessDeniedException();
-		if(System.currentTimeMillis() - lastAction.getLastActive() > 1000*60*1) {
+		if(System.currentTimeMillis() - lastAction.getLastActive() > 1000*60*15) {
 			throw new LoginExpiredException();
 		}
 		
@@ -76,7 +76,7 @@ public class AdminController {
 	}
 	
 	@PutMapping("company/update/{token}")
-	public ResponseEntity<?> updateCompany(@PathVariable String token, @RequestBody Company company) throws CompanyNotFoundException, AccessDeniedException, LoginExpiredException{
+	public ResponseEntity<?> updateCompany(@PathVariable String token, @RequestBody Company company) throws CompanyNotFoundException, AccessDeniedException, LoginExpiredException, CompanyAlreadyExistsException{
 		AdminFacade loggedAdmin = checkFacade(token); 
 		return ResponseEntity.ok(loggedAdmin.updateCompany(company));
 	}
@@ -112,7 +112,7 @@ public class AdminController {
 	 }
 	 
 	 @PutMapping("customer/update/{token}")
-	 public ResponseEntity<?> updateCustomer(@PathVariable String token, @RequestBody Customer customer) throws CustomerNotFoundException, AccessDeniedException, LoginExpiredException{
+	 public ResponseEntity<?> updateCustomer(@PathVariable String token, @RequestBody Customer customer) throws CustomerNotFoundException, AccessDeniedException, LoginExpiredException, CustomerAlreadyExistsException{
 		 AdminFacade loggedAdmin = checkFacade(token);
 		 return ResponseEntity.ok(loggedAdmin.updateCustomer(customer));
 	 }

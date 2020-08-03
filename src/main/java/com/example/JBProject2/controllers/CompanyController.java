@@ -43,7 +43,7 @@ public class CompanyController {
 		
 		if(!(loggedCompany instanceof CompanyFacade))
 			throw new AccessDeniedException();
-		if(System.currentTimeMillis() - lastAction.getLastActive() > 1000*60*1) {
+		if(System.currentTimeMillis() - lastAction.getLastActive() > 1000*60*15) {
 			throw new LoginExpiredException();
 		}
 		
@@ -95,7 +95,7 @@ public class CompanyController {
 	}
 	
 	@PutMapping("{token}/coupon/update")
-	public ResponseEntity<?> updateCoupon(@PathVariable String token, @RequestBody Coupon coupon) throws CouponNotFoundException, AccessDeniedException, LoginExpiredException{
+	public ResponseEntity<?> updateCoupon(@PathVariable String token, @RequestBody Coupon coupon) throws CouponNotFoundException, AccessDeniedException, LoginExpiredException, CouponAlreadyExistsException{
 		CompanyFacade loggedComp = checkFacade(token);
 		return ResponseEntity.ok(loggedComp.updateCoupon(coupon));
 	}

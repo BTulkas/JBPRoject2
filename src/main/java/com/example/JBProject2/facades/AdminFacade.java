@@ -66,9 +66,11 @@ public class AdminFacade extends ClientFacade {
 	
 	
 	// Updates a company. Name and ID update will be blocked client-side.
-	public Company updateCompany(Company company) throws CompanyNotFoundException {
+	public Company updateCompany(Company company) throws CompanyNotFoundException, CompanyAlreadyExistsException {
 		// Checks that the object to update exists in the DB.
 		compRepo.findById(company.getCompanyId()).orElseThrow(CompanyNotFoundException::new);
+		if(compRepo.findCompanyByName(company.getName()).isPresent())
+			throw new CompanyAlreadyExistsException();
 		compRepo.save(company);
 		return company;
 
@@ -125,10 +127,12 @@ public class AdminFacade extends ClientFacade {
 	
 	
 	// Updates a customer
-	public Customer updateCustomer(Customer customer) throws CustomerNotFoundException {
+	public Customer updateCustomer(Customer customer) throws CustomerNotFoundException, CustomerAlreadyExistsException {
 		// Checks that the object to update exists in the DB.
 		if(!custRepo.existsById(customer.getCustomerId())) 
 			throw new CustomerNotFoundException();
+		if(custRepo.findCustomerByEmail(customer.getEmail()).isPresent())
+			throw new CustomerAlreadyExistsException();
 		custRepo.save(customer);
 		return customer;
 	}

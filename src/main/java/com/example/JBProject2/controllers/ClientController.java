@@ -41,10 +41,8 @@ public class ClientController {
 	@Autowired
 	Map<String, Session> sessions;
 	
-	
-	
 	// GenericFacade methods
-	@GetMapping
+	@GetMapping("client")
 	public List<Coupon> getAllCoupons(){
 		return genFace.getAllCoupons();
 	}
@@ -53,6 +51,7 @@ public class ClientController {
 	public ResponseEntity<?> getCompanyFromCoupon(@PathVariable int coupId) throws CouponNotFoundException{
 		return ResponseEntity.ok(genFace.getCouponCompany(coupId));
 	}
+	
 	
 	
 	// Login methods

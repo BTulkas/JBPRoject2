@@ -29,6 +29,7 @@ public class MvcConfiguration implements WebMvcConfigurer {
                                 : new ClassPathResource("/static/index.html");
                     }
                 });
+
     }
     
 }

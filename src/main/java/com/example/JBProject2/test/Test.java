@@ -165,7 +165,7 @@ public class Test {
 	}
 	
 	
-	public void testCompany() throws WrongLoginException, CouponNotFoundException, CompanyNotFoundException {
+	public void testCompany() throws WrongLoginException, CouponNotFoundException, CompanyNotFoundException, CouponAlreadyExistsException {
 		
 		System.out.println("***************************Company tests********************************");
 

@@ -104,10 +104,12 @@ public class CompanyFacade extends ClientFacade {
 	
 	
 	// Updates a coupon by Coupon object
-	public Coupon updateCoupon(Coupon coupon) throws CouponNotFoundException {
+	public Coupon updateCoupon(Coupon coupon) throws CouponNotFoundException, CouponAlreadyExistsException {
 		// Checks the coupon exists and belongs to the company before saving.
 		if(!coupRepo.existsById(coupon.getCouponId()) || coupon.getCompany().getCompanyId() != loggedCompanyId)
 			throw new CouponNotFoundException();
+		if(coupRepo.findByCompanyAndTitle(coupon.getCompany(), coupon.getTitle()))
+			throw new CouponAlreadyExistsException();
 		
 		coupRepo.save(coupon);
 		return coupon;

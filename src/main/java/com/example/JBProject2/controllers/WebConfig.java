@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.example.JBProject2.beans.Session;
-import com.example.JBProject2.facades.ClientFacade;
 
 @Configuration
 public class WebConfig {

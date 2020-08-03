@@ -42,7 +42,7 @@ public class CustomerController {
 		
 		if(!(loggedCustomer instanceof CustomerFacade))
 			throw new AccessDeniedException();
-		if(System.currentTimeMillis() - lastAction.getLastActive() > 1000*60*1) {
+		if(System.currentTimeMillis() - lastAction.getLastActive() > 1000*60*15) {
 			throw new LoginExpiredException();
 		}
 		
