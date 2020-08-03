@@ -14,6 +14,8 @@ import com.example.JBProject2.facades.exceptions.CouponNotFoundException;
 @Service
 @Scope("prototype")
 public class GenericFacade extends ClientFacade {
+	// Methods that should be available to all client types or unlogged clients
+	
 	
 	@Autowired
 	CouponRepository coupRepo;

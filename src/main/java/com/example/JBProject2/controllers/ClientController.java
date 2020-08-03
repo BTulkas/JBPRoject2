@@ -30,7 +30,7 @@ import com.example.JBProject2.login_manager.exception.WrongLoginException;
 @CrossOrigin(origins="http://localhost:4200")
 public class ClientController {
 	
-	// Basically just a login controller + get all coupons
+	// Login controller + GenericFacade controller 
 	
 	@Autowired
 	GenericFacade genFace;
@@ -42,6 +42,8 @@ public class ClientController {
 	Map<String, Session> sessions;
 	
 	
+	
+	// GenericFacade methods
 	@GetMapping
 	public List<Coupon> getAllCoupons(){
 		return genFace.getAllCoupons();
@@ -52,6 +54,8 @@ public class ClientController {
 		return ResponseEntity.ok(genFace.getCouponCompany(coupId));
 	}
 	
+	
+	// Login methods
 	@PostMapping("login/{email}/{password}/{clientType}")
     public ResponseEntity<?> login(@PathVariable String email, @PathVariable String password, @PathVariable String clientType) throws WrongLoginException, CustomerNotFoundException {
 		// Creates unique token
@@ -65,6 +69,7 @@ public class ClientController {
 		} else throw new CustomerNotFoundException();
 
 	}
+	
 	
 	@PostMapping("logout")
 	public void logout(@RequestBody String token){
