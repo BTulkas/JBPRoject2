@@ -1,17 +1,16 @@
 # John Bryce Coupon Project
 
 ## About
-This is the backend code of the final project for the John Bryce Fullstack Java course. The Coupon Project is a RESTful coupon management CRUD application written with Spring Boot that has three possible end-users: an admin user for managing companies and customers, a company user for managing coupons and finally a customer user for purchasing coupons.
+This is the backend code of the final project in the John Bryce Fullstack Java course. The Coupon Project is a RESTful coupon management CRUD application written with Spring Boot that has three possible end-users: an admin user for managing companies and customers, a company user for managing coupons and finally a customer user for purchasing coupons.
 While this repository contains the frontend static files required for a complete run, in order to view the Angular frontend source code please refer to the [JBProject Angular](https://github.com/BTulkas/JBProjectAngular) repository.
 
-## Overview
 
-### Technologies
+## Technologies
 The Coupon Project uses Java 1.8 for access to modern features while maintaining some backwards compatibility and Spring Boot for quick and easy implementation of dependencies.
 Dependencies include JPA with Hibernate ORM to define and manage database interactions and Spring-Web for RESTful MVC conventions.
 The database of choice is MySQL for convenient development testing with the Workbench application.
 
-### Installation and Launch
+## Installation and Launch
 To launch this application on your machine make sure you have installed:
 * JDK 13
 * MySQL 8
@@ -26,6 +25,8 @@ Finally, simply run the file `src/main/java/com.example/JBPRojest2/JbProject2App
 Optionally, you may un-comment the first try-catch statement before the first run to fill the database with randomly generated data.
 
 
+## Overview
+
 ### Models\Beans
 The primary beans (models) are:
 * Company - with a OneToMany relationship to coupons it created.
@@ -39,3 +40,20 @@ The Admin user is hard coded with no DB representation.
 
 ##### Important!
 As of Spring Boot 2.2.5 the Session bean is required for the proper functionality of the token-sessions system. Attempting to bypass this bean by working directly with a fresh HashMap will result in a bug that fills the HashMap with junk data and breaks functionality.
+This bean also holds a lastActive property used in the frontend to log out inactive users.
+
+
+### Facades
+The ClientFacade is an empty facade for all other facades to extend for polymorphism.
+The GenericFacade contains methods that should be available for all client types, including anonymous users (not logged in).
+Other facades behave as expected, defining available methods for each client type.
+
+
+### Controllers
+MvcConfiguration is a resource handler that directs Spring to correctly prioritize the Angular routing system over its internal mappings.
+WebConfig creates an injectable sessions bean for user sessions storage.
+
+
+### Login Manager
+The login manager directory contains the actual LoginManager which, as the name suggests, contains the login method called by user facades, as well as a ClientType enum for use in said function.
+Additionally, it is also home to the CouponExpirationDailyJob, a threaded script that checks for expired coupons once per day, or at termination, and clears them from the database.
